@@ -5,23 +5,46 @@
 #include <SDL_image.h>
 
 #define limit 4
-#define size 2
+#define scale 0.01 
 
 static void setPixel(SDL_Surface *image, int x, int y, int r, int g, int b) {
-    Uint16 col = r << 10 + g << 5 + b;
+    Uint32 col = (0xffff << 24) + (r << 16) + (g << 8) + b;
 
-    Uint16 *pixels = (Uint16 *) image->pixels;
+    Uint32 *pixels = (Uint32 *) image->pixels;
     pixels[ y * image->w + x] = col;
 }
 
 static void mandelbrot(SDL_Surface *image) {
-    int x0 = image->w / 2;
-    int y0 = image->h / 2;
-    double real;
-    double comp;
+    double xpos;
+    double ypos;
+    double r1, r2, c1, c2;
     int count = 0;
 
+    for (int i = -(image->w / 2); i < image->w / 2; i++) {
+        for (int j = -(image->h / 2); j < image->h / 2; j++) {
+            xpos = i * scale;
+            ypos = j * scale;
+           
+            r1 = 0;
+            c1 = 0;
+            count = 0;
+            while (count <= 255 && (r1 * r1) + (c1 * c1) < limit) {
+                count++;
+                r2 = r1 * r1 - c1 * c1 + xpos;
+                c2 = 2*r1*c1 + ypos;
 
+                r1 = r2;
+                c1 = c2;
+            }
+
+            if (count > 255) {
+                setPixel(image, i + image->w / 2, j + image->h / 2, 0, 0, 0);
+                printf("Didn't converge.\n");
+            } else {
+                setPixel(image, i + image->w / 2, j + image->h / 2, 0xffff, 0xffff, 0xffff);
+            }
+        }
+    }
     
 }
 
@@ -39,19 +62,21 @@ int main(int argc, char *argv[]) {
         return 2;
     }
 
-    SDL_Surface *image = IMG_Load("image.png");
+    SDL_Surface *image = IMG_Load("out.png");
     if (!image) {
         SDL_Log("IMG_Load error: %s\n", IMG_GetError());
     }
 
-    for (int i = 0; i < image->w; i++) {
-        for (int j = 0; j < image->h; j++) {
-            setPixel(image, i, j, 0b11111, 0, 0);
-        }
-    }
+    //for (int i = 0; i < image->w; i++) {
+    //    for (int j = 0; j < image->h; j++) {
+    //        setPixel(image, i, j, 0b11111, 0, 0);
+    //    }
+    //}
+    
+    mandelbrot(image);
 
     Uint32 pixelformat = image->format->format;
-    char *formatName = SDL_GetPixelFormatName(pixelformat);
+    const char *formatName = SDL_GetPixelFormatName(pixelformat);
     printf("Format: %s\n", formatName);
     printf("BytesPerPixel: %d\n", image->format->BytesPerPixel);
     IMG_SavePNG(image, "out.png");
