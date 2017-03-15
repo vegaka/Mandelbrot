@@ -5,45 +5,66 @@
 #include <SDL_image.h>
 
 #define limit 4
-#define scale 0.01 
 
 static void setPixel(SDL_Surface *image, int x, int y, int r, int g, int b) {
-    Uint32 col = (0xffff << 24) + (r << 16) + (g << 8) + b;
+    Uint32 col = (0xff << 24) | (r << 16) | (g << 8) | b;
 
     Uint32 *pixels = (Uint32 *) image->pixels;
     pixels[ y * image->w + x] = col;
+	//Uint16 col = (r << 11) + (g << 5) + b;
+
+	//Uint16 *pixels = (Uint16 *) image->pixels;
+	//pixels[y * image->w + x] = col;
 }
 
 static void mandelbrot(SDL_Surface *image) {
-    double xpos;
-    double ypos;
     double r1, r2, c1, c2;
     int count = 0;
 
-    for (int i = -(image->w / 2); i < image->w / 2; i++) {
-        for (int j = -(image->h / 2); j < image->h / 2; j++) {
-            xpos = i * scale;
-            ypos = j * scale;
-           
+	int width = image->w;
+	int height = image->h;
+
+	double xmin = -2.0;
+	double xmax = 1.5;
+	double xstep = (xmax - xmin) / width;
+	printf("Xstep: %f\n", xstep);
+
+	double ymin = -2.0;
+	double ymax = 1.5;
+	double ystep = (ymax - ymin) / height;
+	printf("Ystep: %f\n", ystep);
+
+	int xpix = 0;
+	int ypix = height;
+
+	int colStep = (1 << 24) / (256);
+
+    for (double x = xmin; x < xmax; x += xstep) {
+        for (double y = ymin; y < ymax; y += ystep) { 
             r1 = 0;
             c1 = 0;
             count = 0;
             while (count <= 255 && (r1 * r1) + (c1 * c1) < limit) {
                 count++;
-                r2 = r1 * r1 - c1 * c1 + xpos;
-                c2 = 2*r1*c1 + ypos;
+                r2 = r1 * r1 - c1 * c1 + x;
+                c2 = 2*r1*c1 + y;
 
                 r1 = r2;
                 c1 = c2;
             }
 
             if (count > 255) {
-                setPixel(image, i + image->w / 2, j + image->h / 2, 0, 0, 0);
-                printf("Didn't converge.\n");
+                setPixel(image, xpix, ypix, 0xff, 0xff, 0xff);
+                //printf("Didn't converge.\n");
             } else {
-                setPixel(image, i + image->w / 2, j + image->h / 2, 0xffff, 0xffff, 0xffff);
+				int col = count * colStep;
+                setPixel(image, xpix, ypix, col & 0xff0000, col & 0x00ff00, col & 0x0000ff);
             }
+
+			ypix--;
         }
+		ypix = height;
+		xpix++;
     }
     
 }
