@@ -5,7 +5,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define limit 4
+#define limit 6
 
 static void setPixel(SDL_Surface *image, int x, int y, int r, int g, int b) {
     Uint32 col = (0xff << 24) | (r << 16) | (g << 8) | b;
@@ -38,13 +38,12 @@ static double hueToRGB(double p, double q, double t) {
 	return p;
 }
 
-static Uint32 hslToRGB(double h) {
+static Uint32 hslToRGB(int count) {
 	double r, g, b;
-	double l = 0.5;
-	double s = 1.0;
+	double h = count / 360;
 
-	double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-	double p = 2 * l - q;
+	double q = 1.0; 
+	double p = 0.0;
 	r = hueToRGB(p, q, h + 1/3);
 	g = hueToRGB(p, q, h);
 	b = hueToRGB(p, q, h - 1/3);
@@ -53,7 +52,7 @@ static Uint32 hslToRGB(double h) {
 	int green = (int) round(g * 255);
 	int blue = (int) round(b * 255);
 
-	printf("RGB: %f, %f, %f\n", r, g, b);
+	//printf("RGB: %f, %f, %f\n", r, g, b);
 
 	return (0xff << 24) | (red << 16) | (green << 8) | blue;
 }
@@ -61,6 +60,7 @@ static Uint32 hslToRGB(double h) {
 static void mandelbrot(SDL_Surface *image) {
     double r1, r2, c1, c2;
     int count = 0;
+	int maxIter = 50;
 
 	int width = image->w;
 	int height = image->h;
@@ -85,7 +85,7 @@ static void mandelbrot(SDL_Surface *image) {
             r1 = 0;
             c1 = 0;
             count = 0;
-            while (count < 359 && (r1 * r1) + (c1 * c1) < limit) {
+            while (count < maxIter && (r1 * r1) + (c1 * c1) < limit) {
                 count++;
                 r2 = r1 * r1 - c1 * c1 + x;
                 c2 = 2*r1*c1 + y;
@@ -94,14 +94,14 @@ static void mandelbrot(SDL_Surface *image) {
                 c1 = c2;
             }
 
-            if (count >= 360) {
+            if (count >= maxIter) {
                 setPixel(image, xpix, ypix, 0, 0, 0);
-                //printf("Didn't converge.\n");
+                printf("Didn't converge.\n");
             } else {
 				//int col = count * colStep;
                 //setPixel(image, xpix, ypix, col & 0xff0000, col & 0x00ff00, col & 0x0000ff);
 				Uint32 col = hslToRGB(count);
-				printf("Count: %d\n", count);
+//				printf("Count: %d\n", count);
                 setPixel(image, xpix, ypix, col & 0x00ff0000, col & 0x0000ff00, col & 0x000000ff);
             }
 
