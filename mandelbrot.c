@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 //#include <omp.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -15,6 +16,46 @@ static void setPixel(SDL_Surface *image, int x, int y, int r, int g, int b) {
 
 	//Uint16 *pixels = (Uint16 *) image->pixels;
 	//pixels[y * image->w + x] = col;
+}
+
+// MAGIC!! From: http://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+static double hueToRGB(double p, double q, double t) {
+	if (t < 0)
+		t += 1;
+	
+	if (t > 1)
+		t -= 1;
+
+	if (t < (1/6))
+		return p + (q - p) * 6 * t;
+
+	if (t < 0.5)
+		return q;
+
+	if (t < (2/3))
+		return p + (q - p) * ((2/3) - t) * 6;
+
+	return p;
+}
+
+static Uint32 hslToRGB(double h) {
+	double r, g, b;
+	double l = 0.5;
+	double s = 1.0;
+
+	double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+	double p = 2 * l - q;
+	r = hueToRGB(p, q, h + 1/3);
+	g = hueToRGB(p, q, h);
+	b = hueToRGB(p, q, h - 1/3);
+
+	int red = (int) round(r * 255);
+	int green = (int) round(g * 255);
+	int blue = (int) round(b * 255);
+
+	printf("RGB: %f, %f, %f\n", r, g, b);
+
+	return (0xff << 24) | (red << 16) | (green << 8) | blue;
 }
 
 static void mandelbrot(SDL_Surface *image) {
@@ -37,14 +78,14 @@ static void mandelbrot(SDL_Surface *image) {
 	int xpix = 0;
 	int ypix = height;
 
-	int colStep = (1 << 24) / (256);
+	//int colStep = (1 << 24) / (256);
 
     for (double x = xmin; x < xmax; x += xstep) {
         for (double y = ymin; y < ymax; y += ystep) { 
             r1 = 0;
             c1 = 0;
             count = 0;
-            while (count <= 255 && (r1 * r1) + (c1 * c1) < limit) {
+            while (count < 359 && (r1 * r1) + (c1 * c1) < limit) {
                 count++;
                 r2 = r1 * r1 - c1 * c1 + x;
                 c2 = 2*r1*c1 + y;
@@ -53,12 +94,15 @@ static void mandelbrot(SDL_Surface *image) {
                 c1 = c2;
             }
 
-            if (count > 255) {
-                setPixel(image, xpix, ypix, 0xff, 0xff, 0xff);
+            if (count >= 360) {
+                setPixel(image, xpix, ypix, 0, 0, 0);
                 //printf("Didn't converge.\n");
             } else {
-				int col = count * colStep;
-                setPixel(image, xpix, ypix, col & 0xff0000, col & 0x00ff00, col & 0x0000ff);
+				//int col = count * colStep;
+                //setPixel(image, xpix, ypix, col & 0xff0000, col & 0x00ff00, col & 0x0000ff);
+				Uint32 col = hslToRGB(count);
+				printf("Count: %d\n", count);
+                setPixel(image, xpix, ypix, col & 0x00ff0000, col & 0x0000ff00, col & 0x000000ff);
             }
 
 			ypix--;
