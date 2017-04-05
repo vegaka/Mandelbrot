@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include <omp.h>
+#include <omp.h>
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -69,37 +69,37 @@ static Uint32 hslToRGB(int angle) {
 }
 
 static void mandelbrot(SDL_Surface *image) {
-    double r1, r2, c1, c2;
-    int count = 0;
-	int maxIter = 255;
+    //double r1, r2, c1, c2;
+    //int count = 0;
+	const int maxIter = 255;
 
-	int width = image->w;
-	int height = image->h;
+	const int width = image->w;
+	const int height = image->h;
 
-	double xmin = -1.9;
-	double xmax = 0.5;
-	double xstep = (xmax - xmin) / width;
+	const double xmin = -0.9;
+	const double xmax = -0.6;
+	const double xstep = (xmax - xmin) / width;
 	printf("Xstep: %f\n", xstep);
 
-	double ymin = -1.2;
-	double ymax = 1.2;
-	double ystep = (ymax - ymin) / height;
+	const double ymin = 0.0;
+	const double ymax = 0.2;
+	const double ystep = (ymax - ymin) / height;
 	printf("Ystep: %f\n", ystep);
 
-	int xpix = 0;
-	int ypix = height - 1;
+	for (int xpix = 0; xpix < width; xpix++) {
+		for (int ypix = 0; ypix < height; ypix++) {
+    		double r0, r1, r2, c0, c1, c2;
+			int count;
 
-	//int colStep = (1 << 24) / (256);
-
-    for (double x = xmin; x < xmax; x += xstep) {
-        for (double y = ymin; y < ymax; y += ystep) { 
-            r1 = 0;
-            c1 = 0;
+            r0 = xmin + xpix * xstep;
+            c0 = ymax - ypix * ystep;
+			r1 = r0;
+			c1 = c0;
             count = 0;
             while (count < maxIter && (r1 * r1) + (c1 * c1) < limit) {
                 count++;
-                r2 = r1 * r1 - c1 * c1 + x;
-                c2 = 2*r1*c1 + y;
+                r2 = r1 * r1 - c1 * c1 + r0;
+                c2 = 2*r1*c1 + c0;
 
                 r1 = r2;
                 c1 = c2;
@@ -109,24 +109,14 @@ static void mandelbrot(SDL_Surface *image) {
                 setPixelRGB(image, xpix, ypix, 0, 0, 0);
             } else {
 				setPixelHSL(image, xpix, ypix, count);
-				//int col = count * colStep;
-                //setPixel(image, xpix, ypix, col & 0xff0000, col & 0x00ff00, col & 0x0000ff);
-				//Uint32 col = hslToRGB(count);
-//				printf("Count: %d\n", count);
-                //setPixel(image, xpix, ypix, col & 0x00ff0000, col & 0x0000ff00, col & 0x000000ff);
             }
-
-			ypix--;
         }
-		ypix = height - 1;
-		xpix++;
     }
-    
 }
 
 int main(int argc, char *argv[]) {
-    //int max_threads = omp_get_max_threads();
-    //printf("Max threads: %d\n", max_threads);
+    int max_threads = omp_get_max_threads();
+    printf("Max threads: %d\n", max_threads);
 
     if (SDL_Init(0) != 0) {
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
@@ -141,14 +131,11 @@ int main(int argc, char *argv[]) {
     SDL_Surface *image = IMG_Load("out.png");
     if (!image) {
         SDL_Log("IMG_Load error: %s\n", IMG_GetError());
+		return 3;
     }
 
-    //for (int i = 0; i < image->w; i++) {
-    //    for (int j = 0; j < image->h; j++) {
-    //        setPixel(image, i, j, 0b11111, 0, 0);
-    //    }
-    //}
-    
+	printf("Height: %d, Width: %d\n", image->h, image->w);
+
     mandelbrot(image);
 
     Uint32 pixelformat = image->format->format;
