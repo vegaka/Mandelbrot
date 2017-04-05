@@ -71,7 +71,7 @@ static Uint32 hslToRGB(int angle) {
 static void mandelbrot(SDL_Surface *image) {
     //double r1, r2, c1, c2;
     //int count = 0;
-	const int maxIter = 255;
+	const int maxIter = 360;
 
 	const int width = image->w;
 	const int height = image->h;
@@ -79,13 +79,14 @@ static void mandelbrot(SDL_Surface *image) {
 	const double xmin = -0.9;
 	const double xmax = -0.6;
 	const double xstep = (xmax - xmin) / width;
-	printf("Xstep: %f\n", xstep);
+	//printf("Xstep: %f\n", xstep);
 
 	const double ymin = 0.0;
 	const double ymax = 0.2;
 	const double ystep = (ymax - ymin) / height;
-	printf("Ystep: %f\n", ystep);
+	//printf("Ystep: %f\n", ystep);
 
+	#pragma omp parallel for 
 	for (int xpix = 0; xpix < width; xpix++) {
 		for (int ypix = 0; ypix < height; ypix++) {
     		double r0, r1, r2, c0, c1, c2;
@@ -138,10 +139,10 @@ int main(int argc, char *argv[]) {
 
     mandelbrot(image);
 
-    Uint32 pixelformat = image->format->format;
-    const char *formatName = SDL_GetPixelFormatName(pixelformat);
-    printf("Format: %s\n", formatName);
-    printf("BytesPerPixel: %d\n", image->format->BytesPerPixel);
+    //Uint32 pixelformat = image->format->format;
+    //const char *formatName = SDL_GetPixelFormatName(pixelformat);
+    //printf("Format: %s\n", formatName);
+    //printf("BytesPerPixel: %d\n", image->format->BytesPerPixel);
     IMG_SavePNG(image, "out.png");
     
     SDL_FreeSurface(image);
