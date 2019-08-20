@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <omp.h>
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -71,18 +70,18 @@ static Uint32 hslToRGB(int angle) {
 static void mandelbrot(SDL_Surface *image) {
     //double r1, r2, c1, c2;
     //int count = 0;
-	const int maxIter = 360;
+	const int maxIter = 720;
 
 	const int width = image->w;
 	const int height = image->h;
 
-	const double xmin = -0.9;
-	const double xmax = -0.6;
+	const double xmin = -2;
+	const double xmax = 1;
 	const double xstep = (xmax - xmin) / width;
 	//printf("Xstep: %f\n", xstep);
 
-	const double ymin = 0.0;
-	const double ymax = 0.2;
+	const double ymin = -1.5;
+	const double ymax = 1.5;
 	const double ystep = (ymax - ymin) / height;
 	//printf("Ystep: %f\n", ystep);
 
@@ -116,9 +115,6 @@ static void mandelbrot(SDL_Surface *image) {
 }
 
 int main(int argc, char *argv[]) {
-    int max_threads = omp_get_max_threads();
-    printf("Max threads: %d\n", max_threads);
-
     if (SDL_Init(0) != 0) {
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
         return 1;

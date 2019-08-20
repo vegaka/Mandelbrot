@@ -33,6 +33,7 @@
 *.su
 
 mandelbrot
+mandelbrot_cu
 *.bmp
 *.png 
 *.swp
