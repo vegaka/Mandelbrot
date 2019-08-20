@@ -6,7 +6,7 @@ CFLAGS+=-std=c99 -g -Wall -fopenmp -lm#-Xpreprocessor -fopenmp #-lomp
 NVCCFLAGS+= -g -lm
 
 mandelbrot: mandelbrot.c
-	$(CC) mandelbrot.c $(CFLAGS) $(SDL_CFLAGS) $(SDL_LDFLAGS) -lSDL2_image -o mandelbrot
+	$(CC) mandelbrot.c $(SDL_CFLAGS) $(SDL_LDFLAGS) -lSDL2_image $(CFLAGS) -o mandelbrot
 
 cuda: mandelbrot.cu
 	$(NVCC) mandelbrot.cu $(NVCCFLAGS) $(SDL_CFLAGS) $(SDL_LDFLAGS) -lSDL2_image -o mandelbrot_cu
