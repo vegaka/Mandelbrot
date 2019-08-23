@@ -4,6 +4,10 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 #define limit 6
 
 static Uint32 hslToRGB(int angle);
@@ -115,6 +119,10 @@ static void mandelbrot(SDL_Surface *image) {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef USE_OPENMP
+    printf("%d\n", omp_get_max_threads());
+#endif
+
     if (SDL_Init(0) != 0) {
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
         return 1;
