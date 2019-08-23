@@ -38,3 +38,4 @@ mandelbrot_cu
 *.png 
 *.swp
 core
+build/
