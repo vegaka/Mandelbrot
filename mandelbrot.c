@@ -161,10 +161,6 @@ struct ImageMetadata parseArgs(char* argv[]) {
     return metadata;
 }
 
-SDL_Surface* createImage(int size) {
-    return SDL_CreateRGBSurfaceWithFormat(0, size, size, 32, SDL_PIXELFORMAT_ABGR8888);
-}
-
 void printUsage() {
     printf("Usage: mandelbrot -f path [-s size | -xmin xmin | -xmax xmax | -ymin ymin | -ymax ymax]\n");
     printf("-f path:         Sets the path used to read and write the png image.\n");
